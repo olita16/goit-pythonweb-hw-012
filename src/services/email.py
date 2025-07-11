@@ -20,16 +20,21 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=settings.VALIDATE_CERTS,
     TEMPLATE_FOLDER=Path(__file__).parent / "templates",
 )
+"""
+Конфігурація для FastAPI-Mail, яка використовує налаштування з конфігураційного файлу.
+Папка з HTML-шаблонами для листів знаходиться в "templates" поряд з цим файлом.
+"""
 
 
 async def send_email(email: EmailStr, username: str, host: str):
     """
-    Надсилає лист для підтвердження email користувача.
+    Відправляє лист підтвердження електронної пошти користувачу.
 
-    :param email: Email користувача.
-    :param username: Ім’я користувача.
-    :param host: Хост додатку (для формування посилання).
-    :return: None
+    Створює токен підтвердження і відправляє лист з посиланням на підтвердження.
+
+    :param email: Email отримувача.
+    :param username: Ім'я користувача для персоналізації листа.
+    :param host: Базова URL-адреса сервера для формування посилання.
     """
     try:
         token_verification = create_email_token({"sub": email})
@@ -52,11 +57,12 @@ async def send_email(email: EmailStr, username: str, host: str):
 
 async def send_reset_password_email(email: EmailStr, host: str):
     """
-    Надсилає лист із посиланням для скидання пароля.
+    Відправляє лист для скидання пароля.
 
-    :param email: Email користувача.
-    :param host: Хост додатку (для формування посилання).
-    :return: None
+    Генерує токен для скидання пароля та відправляє лист із відповідним посиланням.
+
+    :param email: Email отримувача.
+    :param host: Базова URL-адреса сервера для формування посилання.
     """
     try:
         token = create_email_token({"sub": email})

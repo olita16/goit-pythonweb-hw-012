@@ -4,20 +4,24 @@ import cloudinary.uploader
 
 class UploadFileService:
     """
-    Сервіс для завантаження файлів у Cloudinary.
+    Сервіс для завантаження файлів на Cloudinary.
+
+    Ініціалізується з параметрами доступу до Cloudinary.
     """
 
-    def __init__(self, cloud_name, api_key, api_secret):
+    def __init__(self, cloud_name: str, api_key: str, api_secret: str):
         """
-        Ініціалізує параметри підключення до Cloudinary.
+        Ініціалізація Cloudinary з конфігурацією.
 
-        :param cloud_name: Назва облікового запису в Cloudinary.
-        :param api_key: API ключ.
-        :param api_secret: API секрет.
+        Args:
+            cloud_name (str): Ім'я Cloudinary облікового запису.
+            api_key (str): API ключ.
+            api_secret (str): Секретний ключ.
         """
         self.cloud_name = cloud_name
         self.api_key = api_key
         self.api_secret = api_secret
+
         cloudinary.config(
             cloud_name=self.cloud_name,
             api_key=self.api_key,
@@ -26,17 +30,20 @@ class UploadFileService:
         )
 
     @staticmethod
-    def upload_file(file, username) -> str:
+    def upload_file(file, username: str) -> str:
         """
-        Завантажує файл користувача в Cloudinary та формує URL.
+        Завантажує файл на Cloudinary та повертає URL зображення.
 
-        :param file: Об'єкт файлу (типу UploadFile).
-        :param username: Ім’я користувача для формування public_id.
-        :return: Посилання на завантажене зображення (250x250).
+        Args:
+            file: Об'єкт файлу (UploadFile).
+            username (str): Ім'я користувача для формування public_id.
+
+        Returns:
+            str: URL завантаженого зображення з параметрами обрізки.
         """
         public_id = f"RestApp/{username}"
-        r = cloudinary.uploader.upload(file.file, public_id=public_id, overwrite=True)
+        result = cloudinary.uploader.upload(file.file, public_id=public_id, overwrite=True)
         src_url = cloudinary.CloudinaryImage(public_id).build_url(
-            width=250, height=250, crop="fill", version=r.get("version")
+            width=250, height=250, crop="fill", version=result.get("version")
         )
         return src_url

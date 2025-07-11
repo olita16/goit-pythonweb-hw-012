@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 
 from src.repository import user as user_repo
-from src.databases.models import User
+from src.db.models import User
 from src.schemas.auth import UserModel
 
 

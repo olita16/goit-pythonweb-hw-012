@@ -4,7 +4,6 @@ from typing import Optional
 
 class Token(BaseModel):
     access_token: str
-    refresh_token: str
     token_type: str
 
 
@@ -28,11 +27,12 @@ class User(BaseModel):
     avatar: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
 class RequestResetPassword(BaseModel):
     email: EmailStr
 
-
 class ResetPassword(BaseModel):
+    password: str
+
+class ResetPasswordWithToken(BaseModel):
+    token: str
     password: str

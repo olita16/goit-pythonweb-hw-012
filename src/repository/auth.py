@@ -8,41 +8,47 @@ from src.settings.base import ALGORITHM, SECRET_KEY
 
 class Hash:
     """
-    Клас для хешування паролів та їх перевірки.
+    Клас для хешування та перевірки паролів.
     """
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def verify_password(self, plain_password, hashed_password):
         """
-        Перевіряє, чи відповідає plain_password хешу hashed_password.
+        Перевіряє відповідність хешованого пароля оригіналу.
 
-        :param plain_password: Пароль у звичайному тексті.
-        :param hashed_password: Хешований пароль для порівняння.
-        :return: True, якщо паролі співпадають, інакше False.
+        :param plain_password: Незахешований пароль.
+        :type plain_password: str
+        :param hashed_password: Хешований пароль.
+        :type hashed_password: str
+        :return: True, якщо паролі збігаються, інакше False.
+        :rtype: bool
         """
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def get_password_hash(self, password: str):
         """
-        Перевіряє, чи відповідає plain_password хешу hashed_password.
+        Генерує хеш з переданого пароля.
 
-        :param plain_password: Пароль у звичайному тексті.
-        :param hashed_password: Хешований пароль для порівняння.
-        :return: True, якщо паролі співпадають, інакше False.
+        :param password: Пароль, який потрібно захешувати.
+        :type password: str
+        :return: Хешований пароль.
+        :rtype: str
         """
         return self.pwd_context.hash(password)
 
 
 async def create_access_token(data: dict, expires_delta=3600):
     """
-    Перевіряє, чи відповідає plain_password хешу hashed_password.
+    Створює JWT токен доступу.
 
-    :param plain_password: Пароль у звичайному тексті.
-    :param hashed_password: Хешований пароль для порівняння.
-    :return: True, якщо паролі співпадають, інакше False.
+    :param data: Дані, які потрібно закодувати в токен.
+    :type data: dict
+    :param expires_delta: Тривалість життя токена у секундах. За замовчуванням — 3600 секунд (1 година).
+    :type expires_delta: int
+    :return: Згенерований токен.
+    :rtype: str
     """
-
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(seconds=expires_delta)
     to_encode.update({"exp": expire})
@@ -53,10 +59,12 @@ async def create_access_token(data: dict, expires_delta=3600):
 
 def create_email_token(data: dict):
     """
-    Створює JWT токен для верифікації email з терміном дії 7 днів.
+    Створює JWT токен для підтвердження електронної пошти.
 
-    :param data: Дані для кодування у токені.
-    :return: Закодований JWT токен.
+    :param data: Дані, які потрібно закодувати в токен.
+    :type data: dict
+    :return: Згенерований email-токен.
+    :rtype: str
     """
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(days=7)
@@ -67,11 +75,13 @@ def create_email_token(data: dict):
 
 async def get_email_from_token(token: str):
     """
-    Декодує email з JWT токена.
+    Отримує email з JWT токена.
 
     :param token: JWT токен.
-    :return: Email, витягнутий з токена.
-    :raises HTTPException: Якщо токен некоректний або прострочений.
+    :type token: str
+    :raises HTTPException: Якщо токен недійсний або не може бути розкодуваний.
+    :return: Email, отриманий з токена.
+    :rtype: str
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

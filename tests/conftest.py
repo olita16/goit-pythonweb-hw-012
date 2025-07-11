@@ -1,25 +1,26 @@
 import sys
 import os
 import pytest
-import asyncio
-import pytest_asyncio
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+import pytest_asyncio
 
-# Додаємо корінь проєкту в sys.path
+
+import fakeredis
+from httpx import AsyncClient, ASGITransport
+
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import sessionmaker
 from main import app
-from src.databases.models import User
-from src.databases.connect import Base, get_db
+from src.db.models import User
+from src.db.connect import Base, get_db
 from src.repository.auth import create_access_token, Hash
+from src.settings.config import settings 
 
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-
+SQLALCHEMY_DATABASE_URL = settings.DB_URL
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -27,8 +28,12 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 test_user = {
-    "email": "deadpool@example.com",
-    "password": "12345678",
+    "email": "ironman@example.com",
+    "password": "supersecure123",
+    "first_name": "Tony",
+    "last_name": "Stark",
+    "avatar": "https://example.com/ironman.png",
+    "confirmed": True,
 }
 
 
@@ -42,18 +47,18 @@ def init_models_wrap():
     current_user = User(
         email=test_user["email"],
         password=hash_password,
-        first_name="Wade",
-        last_name="Wilson",
-        confirmed=True,
-        avatar="https://twitter.com/gravatar",
+        first_name=test_user["first_name"],
+        last_name=test_user["last_name"],
+        confirmed=test_user["confirmed"],
+        avatar=test_user["avatar"],
     )
     db.add(current_user)
     db.commit()
     db.close()
 
 
-@pytest.fixture(scope="module")
-def client():
+@pytest_asyncio.fixture(scope="module")
+async def client():
     def override_get_db():
         db = TestingSessionLocal()
         try:
@@ -63,7 +68,11 @@ def client():
 
     app.dependency_overrides[get_db] = override_get_db
 
-    yield TestClient(app)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
+        yield ac
+
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture()
@@ -71,3 +80,17 @@ def get_token():
     from asyncio import run
 
     return run(create_access_token(data={"sub": test_user["email"]}))
+
+@pytest.fixture(autouse=True)
+def mock_redis(monkeypatch):
+    fake_redis = fakeredis.FakeRedis(decode_responses=True)
+
+    monkeypatch.setattr("src.services.auth.Auth.r", fake_redis)
+
+@pytest.fixture(autouse=True)
+def disable_email_sending(monkeypatch):
+    async def fake_send_email(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("src.services.email.send_email", fake_send_email)
+    monkeypatch.setattr("src.services.email.send_reset_password_email", fake_send_email)

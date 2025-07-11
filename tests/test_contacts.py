@@ -1,8 +1,9 @@
+
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 
 from src.repository import contacts
-from src.databases.models import Contact, User
+from src.db.models import Contact, User
 from datetime import date, timedelta
 
 

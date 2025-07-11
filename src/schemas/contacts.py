@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import date
+from typing import Optional
 
 
 class ContactModel(BaseModel):
@@ -8,6 +9,7 @@ class ContactModel(BaseModel):
     email: EmailStr
     phone_number: str
     birthday: date
+    additional_info: Optional[str] = None
 
 
 class ContactResponse(BaseModel):
@@ -15,8 +17,7 @@ class ContactResponse(BaseModel):
     email: EmailStr
     user_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ContactUpdate(BaseModel):
@@ -25,3 +26,4 @@ class ContactUpdate(BaseModel):
     email: EmailStr = None
     phone_number: str = None
     birthday: date = None
+    additional_info: Optional[str] = None

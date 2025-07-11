@@ -3,23 +3,21 @@ from sqlalchemy.orm import Session
 from src.repository.user import update_avatar_url
 from src.services.upload_file import UploadFileService
 from src.schemas.auth import User
-from src.databases.models import Role, User as UserORM
-from src.databases.connect import get_db
-
+from src.db.models import User as UserORM
+from src.db.connect import get_db
+from src.db.models import Role
+from src.services.roles import RoleAccess
 from src.services.auth import auth_service
 from src.settings.config import settings
-from src.services.roles import RoleAccess
 
 
 router = APIRouter(prefix="/user", tags=["users"])
-
-allowed_operation_update_avatar = RoleAccess([Role.admin])
 
 
 @router.patch(
     "/avatar",
     response_model=User,
-    dependencies=[Depends(allowed_operation_update_avatar)],
+    dependencies=[Depends(RoleAccess([Role.admin]))]
 )
 async def update_avatar_user(
     file: UploadFile = File(),
@@ -27,12 +25,17 @@ async def update_avatar_user(
     db: Session = Depends(get_db),
 ):
     """
-    Оновлює аватар користувача (доступно лише для адміністраторів).
+    Оновлює аватар користувача.
 
-    :param file: Завантажуваний файл зображення.
-    :param user: Поточний автентифікований користувач.
+    Цей ендпоінт дозволяє користувачам з роллю admin завантажити новий аватар.
+    Файл завантажується через UploadFile, після чого відбувається завантаження у хмарне сховище
+    (Cloudinary) та оновлення URL аватара у базі даних.
+
+    :param file: Файл аватара, що завантажується.
+    :param user: Поточний авторизований користувач (повинен мати роль admin).
     :param db: Сесія бази даних.
-    :return: Користувач з оновленим URL аватарки.
+    :return: Оновлена інформація про користувача, включно з новим URL аватара.
+    :rtype: User
     """
     avatar_url = UploadFileService(
         settings.CLOUDINARY_NAME,

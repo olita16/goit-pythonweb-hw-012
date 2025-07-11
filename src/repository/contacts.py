@@ -1,18 +1,22 @@
 from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException
 
-from src.databases.models import Contact, User
+from src.db.models import Contact, User
 from src.services.auth import auth_service
 
 
 async def create_contact(body, db, user: User = Depends(auth_service.get_current_user)):
     """
-    Створює новий контакт для користувача.
+    Створює новий контакт для поточного користувача.
 
     :param body: Дані нового контакту.
+    :type body: ContactModel (або Pydantic модель)
     :param db: Сесія бази даних.
-    :param user: Поточний автентифікований користувач.
-    :return: Об'єкт створеного контакту.
+    :type db: Session
+    :param user: Поточний користувач (отримується через Depends).
+    :type user: User
+    :return: Створений контакт.
+    :rtype: Contact
     """
     contact = Contact(**body.model_dump())
     contact.user_id = user.id
@@ -24,54 +28,53 @@ async def create_contact(body, db, user: User = Depends(auth_service.get_current
 
 async def get_contacts(db, user: User = Depends(auth_service.get_current_user)):
     """
-    Повертає всі контакти користувача.
+    Повертає всі контакти для поточного користувача.
 
     :param db: Сесія бази даних.
-    :param user: Поточний автентифікований користувач.
-    :return: Список контактів користувача.
+    :type db: Session
+    :param user: Поточний користувач.
+    :type user: User
+    :return: Список контактів.
+    :rtype: list[Contact]
     """
     return db.query(Contact).filter(Contact.user_id == user.id).all()
 
 
-async def get_contact_by_id(
-    contact_id, db, user: User = Depends(auth_service.get_current_user)
-):
+async def get_contact_by_id(contact_id, db, user: User = Depends(auth_service.get_current_user)):
     """
-    Повертає контакт за id користувача.
+    Отримує контакт за ідентифікатором.
 
     :param contact_id: Ідентифікатор контакту.
+    :type contact_id: int
     :param db: Сесія бази даних.
-    :param user: Поточний автентифікований користувач.
-    :raises HTTPException: Якщо контакт не знайдено (404).
-    :return: Об'єкт контакту.
+    :type db: Session
+    :param user: Поточний користувач.
+    :type user: User
+    :raises HTTPException: Якщо контакт не знайдено.
+    :return: Контакт.
+    :rtype: Contact
     """
-    contact = (
-        db.query(Contact)
-        .filter(Contact.id == contact_id, Contact.user_id == user.id)
-        .first()
-    )
+    contact = db.query(Contact).filter(Contact.id == contact_id, Contact.user_id == user.id).first()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
     return contact
 
 
-async def delete_contact(
-    contact_id, db, user: User = Depends(auth_service.get_current_user)
-):
+async def delete_contact(contact_id, db, user: User = Depends(auth_service.get_current_user)):
     """
-    Видаляє контакт за id користувача.
+    Видаляє контакт за ідентифікатором.
 
     :param contact_id: Ідентифікатор контакту.
+    :type contact_id: int
     :param db: Сесія бази даних.
-    :param user: Поточний автентифікований користувач.
-    :raises HTTPException: Якщо контакт не знайдено (404).
-    :return: Об'єкт видаленого контакту.
+    :type db: Session
+    :param user: Поточний користувач.
+    :type user: User
+    :raises HTTPException: Якщо контакт не знайдено.
+    :return: Видалений контакт.
+    :rtype: Contact
     """
-    contact = (
-        db.query(Contact)
-        .filter(Contact.id == contact_id, Contact.user_id == user.id)
-        .first()
-    )
+    contact = db.query(Contact).filter(Contact.id == contact_id, Contact.user_id == user.id).first()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
 
@@ -80,24 +83,23 @@ async def delete_contact(
     return contact
 
 
-async def update_contact(
-    contact_id: int, body, db, user: User = Depends(auth_service.get_current_user)
-):
+async def update_contact(contact_id: int, body, db, user: User = Depends(auth_service.get_current_user)):
     """
-    Оновлює контакт за id користувача.
+    Оновлює дані контакту за ідентифікатором.
 
     :param contact_id: Ідентифікатор контакту.
-    :param body: Дані для оновлення контакту.
+    :type contact_id: int
+    :param body: Нові дані для оновлення.
+    :type body: ContactUpdateModel (або Pydantic модель)
     :param db: Сесія бази даних.
-    :param user: Поточний автентифікований користувач.
-    :raises HTTPException: Якщо контакт не знайдено (404).
-    :return: Оновлений об'єкт контакту.
+    :type db: Session
+    :param user: Поточний користувач.
+    :type user: User
+    :raises HTTPException: Якщо контакт не знайдено.
+    :return: Оновлений контакт.
+    :rtype: Contact
     """
-    contact = (
-        db.query(Contact)
-        .filter(Contact.id == contact_id, Contact.user_id == user.id)
-        .first()
-    )
+    contact = db.query(Contact).filter(Contact.id == contact_id, Contact.user_id == user.id).first()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
 
@@ -117,15 +119,21 @@ async def search_contacts(
     user: User = Depends(auth_service.get_current_user),
 ):
     """
-    Шукає контакти користувача за ім'ям, прізвищем або email.
+    Пошук контактів за іменем, прізвищем або email.
 
-    :param first_name: Ім'я для пошуку (необов'язково).
-    :param last_name: Прізвище для пошуку (необов'язково).
-    :param email: Email для пошуку (необов'язково).
+    :param first_name: Ім'я для пошуку.
+    :type first_name: str | None
+    :param last_name: Прізвище для пошуку.
+    :type last_name: str | None
+    :param email: Email для пошуку.
+    :type email: str | None
     :param db: Сесія бази даних.
-    :param user: Поточний автентифікований користувач.
-    :raises HTTPException: Якщо контакти не знайдені (404).
+    :type db: Session
+    :param user: Поточний користувач.
+    :type user: User
+    :raises HTTPException: Якщо не знайдено жодного контакту.
     :return: Список знайдених контактів.
+    :rtype: list[Contact]
     """
     query = db.query(Contact).filter(Contact.user_id == user.id)
 
@@ -145,12 +153,15 @@ async def search_contacts(
 
 async def upcoming_birthdays(db, user: User = Depends(auth_service.get_current_user)):
     """
-    Повертає контакти користувача з днями народження найближчого тижня.
+    Повертає контакти з днями народження протягом наступних 7 днів.
 
     :param db: Сесія бази даних.
-    :param user: Поточний автентифікований користувач.
-    :raises HTTPException: Якщо дні народження не знайдені (404).
+    :type db: Session
+    :param user: Поточний користувач.
+    :type user: User
+    :raises HTTPException: Якщо не знайдено жодного контакту з наближеним днем народження.
     :return: Список контактів з майбутніми днями народження.
+    :rtype: list[Contact]
     """
     today = datetime.today().date()
     next_week = today + timedelta(days=7)

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from src.databases.models import User
+from src.db.models import User
 from src.schemas.auth import UserModel
 
 
@@ -8,8 +8,11 @@ async def get_user_by_email(email: str, db: Session):
     Повертає користувача за email.
 
     :param email: Email користувача.
+    :type email: str
     :param db: Сесія бази даних.
+    :type db: Session
     :return: Об'єкт користувача або None, якщо не знайдено.
+    :rtype: User | None
     """
     user = db.query(User).filter_by(email=email).first()
     return user
@@ -17,11 +20,14 @@ async def get_user_by_email(email: str, db: Session):
 
 async def create_user(body: UserModel, db: Session):
     """
-    Створює нового користувача в базі даних.
+    Створює нового користувача у базі даних.
 
-    :param body: Дані нового користувача.
+    :param body: Дані користувача.
+    :type body: UserModel
     :param db: Сесія бази даних.
-    :return: Об'єкт створеного користувача.
+    :type db: Session
+    :return: Створений користувач.
+    :rtype: User
     """
     user = User(**body.model_dump())
     db.add(user)
@@ -32,13 +38,14 @@ async def create_user(body: UserModel, db: Session):
 
 async def change_confirmed_email(email: str, db: Session) -> None:
     """
-    Встановлюж email як підтверджений.
+    Позначає email як підтверджений.
 
     :param email: Email користувача.
+    :type email: str
     :param db: Сесія бази даних.
+    :type db: Session
     :return: None
     """
-
     user = await get_user_by_email(email, db)
     user.confirmed = True
     db.commit()
@@ -46,12 +53,16 @@ async def change_confirmed_email(email: str, db: Session) -> None:
 
 async def update_avatar_url(email: str, url: str, db: Session) -> User:
     """
-    Оновлює URL аватарки користувача.
+    Оновлює URL аватара користувача.
 
     :param email: Email користувача.
-    :param url: Новий URL аватарки.
+    :type email: str
+    :param url: Новий URL аватара.
+    :type url: str
     :param db: Сесія бази даних.
-    :return: Оновлений об'єкт користувача.
+    :type db: Session
+    :return: Оновлений користувач.
+    :rtype: User
     """
     user = await get_user_by_email(email, db)
     user.avatar = url
@@ -62,12 +73,16 @@ async def update_avatar_url(email: str, url: str, db: Session) -> User:
 
 async def update_user_password(email: str, hashed_password: str, db: Session):
     """
-    Оновлює пароль користувача.
+    Оновлює пароль користувача на новий хеш.
 
     :param email: Email користувача.
-    :param hashed_password: Хешований новий пароль.
+    :type email: str
+    :param hashed_password: Хешований пароль.
+    :type hashed_password: str
     :param db: Сесія бази даних.
-    :return: Оновлений об'єкт користувача або None, якщо не знайдено.
+    :type db: Session
+    :return: Оновлений користувач або None, якщо не знайдено.
+    :rtype: User | None
     """
     user = await get_user_by_email(email, db)
     if not user:

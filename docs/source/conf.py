@@ -7,28 +7,28 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src'))
+
+# Відносно розташування conf.py (зазвичай docs/source/conf.py)
+sys.path.insert(0, os.path.abspath('../../src/'))
 
 
-
-
-project = 'contacts_app'
-copyright = '2025, olena'
-author = 'olena'
+project = 'Contacts App'
+copyright = '2025, Olena Trzewik'
+author = 'Olena Trzewik'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',       # для генерації документації з docstrings
-    'sphinx.ext.napoleon',      # для підтримки Google-style або NumPy-style docstrings
-    'sphinx.ext.viewcode'       # щоб бачити вихідний код у документації
+    'sphinx.ext.autodoc',  # автогенерація докстрінгів
+    'sphinx_autodoc_typehints',  # автозапис типів із анотацій
 ]
 
-templates_path = ['_templates']
-exclude_patterns = []
 
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+language = 'ua'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

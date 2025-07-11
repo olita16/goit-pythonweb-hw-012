@@ -1,20 +1,70 @@
-.. contacts_app documentation master file, created by
-   sphinx-quickstart on Mon Jun 23 22:47:32 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-contacts_app documentation
-==========================
-
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
-
-Contents:
+Rest API documentation
+======================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Modules
+   :caption: Contents:
 
-   modules
+REST API main
+=============
+.. automodule:: main
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+REST API repository
+===================
+.. automodule:: repository.auth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src.repository.contacts
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src.repository.users
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+REST API routers
+================
+.. automodule:: src.routers.auth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src.routers.contacts
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src.routers.users
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+REST API services
+=================
+.. automodule:: src.services.auth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src.services.email
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src.services.roles
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src.services.upload_file
+   :members:
+   :undoc-members:
+   :show-inheritance:

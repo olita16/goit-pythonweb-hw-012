@@ -1,12 +1,8 @@
-import configparser
-import pathlib
+from src.settings.config import settings
 
-path = pathlib.Path(__file__).parent.joinpath("config.ini")
-print("Reading config.ini from:", path)
+DATABASE_URL = settings.DB_URL
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
 
-parser = configparser.ConfigParser()
-parser.read(path)
 
-DB_URL = parser.get("DB", "DB_URL")
-SECRET_KEY = parser.get("AUTH", "SECRET_KEY")
-ALGORITHM = parser.get("AUTH", "ALGORITHM")
+

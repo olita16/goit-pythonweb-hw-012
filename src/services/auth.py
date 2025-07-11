@@ -1,21 +1,23 @@
 import pickle
 import redis
 
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from src.repository.user import get_user_by_email
-from src.databases.connect import get_db
-from src.databases.models import User as UserORM
+from src.db.connect import get_db
+from src.db.models import Role
+
 from src.settings.base import ALGORITHM, SECRET_KEY
 
 
 class Auth:
     """
-    Клас для автентифікації користувачів через JWT та кешування з Redis.
+    Сервіс аутентифікації користувачів.
+
+    Підтримує валідацію JWT токенів та кешування користувачів у Redis.
     """
 
     r = redis.Redis(host="redis", port=6379, db=0)
@@ -26,13 +28,15 @@ class Auth:
         db: Session = Depends(get_db),
     ):
         """
-        Отримує поточного користувача за JWT токеном. Перевіряє токен, витягує email,
-        шукає користувача в Redis або базі даних. Кешує користувача на 15 хвилин.
+        Отримує поточного користувача на основі JWT токена.
 
-        :param token: JWT токен авторизації.
+        Перевіряє валідність токена, декодує його, отримує email та роль користувача.
+        Якщо користувач є в кеші Redis — використовує його, інакше отримує з БД і кешує.
+
+        :param token: HTTP авторизаційні дані (Bearer токен).
         :param db: Сесія бази даних.
-        :raises HTTPException: Якщо токен недійсний або користувача не знайдено.
-        :return: Об'єкт користувача (UserORM).
+        :return: Об'єкт користувача.
+        :raises HTTPException: Якщо токен невалідний або користувач не знайдений.
         """
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -43,35 +47,30 @@ class Auth:
         try:
             payload = jwt.decode(token.credentials, SECRET_KEY, algorithms=[ALGORITHM])
             print("Payload from token:", payload)
-            email = payload["sub"]
-            if email is None:
-                print("No sub in token")
+            email = payload.get("sub")
+            role_str = payload.get("roles")
+            if email is None or role_str is None:
+                print("Missing sub or roles in token")
                 raise credentials_exception
         except JWTError as e:
             print("JWT error:", e)
             raise credentials_exception
 
-        # user: User = db.query(User).filter(User.email == email).first()
-        cache_key = f"user:{email}"
-        cached_user = self.r.get(cache_key)
+        cached_user = self.r.get(f"user:{email}")
 
-        if cached_user:
-            user: UserORM = pickle.loads(cached_user)
-
-            fresh_user = await get_user_by_email(email, db)
-            if not fresh_user:
-                raise credentials_exception
-
-            if fresh_user.roles != user.roles:
-                user = fresh_user
-                self.r.set(cache_key, pickle.dumps(user))
-                self.r.expire(cache_key, 900)
-        else:
+        if cached_user is None:
             user = await get_user_by_email(email, db)
-            if not user:
+            if user is None:
                 raise credentials_exception
-            self.r.set(cache_key, pickle.dumps(user))
-            self.r.expire(cache_key, 900)
+            self.r.set(f"user:{email}", pickle.dumps(user))
+            self.r.expire(f"user:{email}", 900)
+        else:
+            user = pickle.loads(cached_user)
+
+        try:
+            user.roles = Role(role_str)
+        except ValueError:
+            raise credentials_exception
 
         return user
 
