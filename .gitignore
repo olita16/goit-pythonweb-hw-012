@@ -1,78 +1,78 @@
 
-# # Python
-# __pycache__/
-# *.py[cod]
-# *.pyo
-# *.pyd
-# *.env
-# *.env.*
-# *.venv/
-# venv/
-# env/
-# ENV/
-# .Python
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.env.*
+*.venv/
+venv/
+env/
+ENV/
+.Python
 
-# # Virtual environment
-# .venv/
-# env/
-# venv/
+# Virtual environment
+.venv/
+env/
+venv/
 
-# # Byte-compiled / optimized / DLL files
-# __pycache__/
-# *.pyc
-# *.pyo
-# *.pyd
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# # Distribution / packaging
-# build/
-# dist/
-# *.egg-info/
-# .eggs/
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
 
-# # Installer logs
-# pip-log.txt
-# pip-delete-this-directory.txt
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-# # Unit test / coverage reports
-# htmlcov/
-# .tox/
-# .nox/
-# .coverage
-# .coverage.*
-# .cache
-# .pytest_cache/
-# nosetests.xml
-# coverage.xml
-# *.cover
-# *.py,cover
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
 
-# # MyPy
-# .mypy_cache/
-# .dmypy.json
-# dmypy.json
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# # IDEs and editors
-# .vscode/
-# .idea/
-# *.sublime-project
-# *.sublime-workspace
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
 
-# # Logs
-# *.log
+# Logs
+*.log
 
-# # Docker
-# docker-compose.override.yml
-# *.env
+# Docker
+docker-compose.override.yml
+*.env
 
-# # Cloudinary uploads (optional, if you keep uploads locally)
-# uploads/
-# media/
+# Cloudinary uploads (optional, if you keep uploads locally)
+uploads/
+media/
 
-# # Database files
-# *.sqlite3
-# *.db
+# Database files
+*.sqlite3
+*.db
 
-# # FastAPI stuff
-# instance/
+# FastAPI stuff
+instance/
 
-# .DS_Store
+.DS_Store
